@@ -1,5 +1,6 @@
 package com.controlade.fraud;
 
+import com.controlade.clients.fraud.FraudCheckResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
