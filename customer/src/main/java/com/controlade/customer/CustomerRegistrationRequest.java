@@ -5,5 +5,4 @@ public record CustomerRegistrationRequest(
         String lastName,
         String email) {
 
-
 }
