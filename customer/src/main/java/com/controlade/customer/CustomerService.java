@@ -1,5 +1,6 @@
 package com.controlade.customer;
 
+import com.controlade.amqp.RabbitMQMessageProducer;
 import com.controlade.clients.fraud.FraudCheckResponse;
 import com.controlade.clients.fraud.FraudClient;
 import com.controlade.clients.notification.NotificationClient;
@@ -17,7 +18,8 @@ public class CustomerService {
 //    private final RestTemplate restTemplate;  //not in use after implementing Open Feign
     //inject FraudClient to use it instead of having the implementation here
     private final FraudClient fraudClient;
-    private final NotificationClient notificationClient;
+//    private final NotificationClient notificationClient;   // not needed, now using RabbitMQ in the middle
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     public void registerCustomer(CustomerRegistrationRequest request){
         Customer customer = Customer.builder()
@@ -41,14 +43,17 @@ public class CustomerService {
             throw new IllegalStateException("fraudster");
         }
         // send notification
-        // todo: make it async. i.e add to queue
-        notificationClient.sendNotification(
-                new NotificationRequest(
-                        customer.getId(),
-                        customer.getEmail(),
-                        String.format("Hi %s, welcome to controlade...",
-                                customer.getFirstName())
-                )
+        // [done]_todo: make it async. i.e add to queue
+        NotificationRequest notificationRequest = new NotificationRequest(
+                customer.getId(),
+                customer.getEmail(),
+                String.format("Hi %s, welcome to controlade...",
+                        customer.getFirstName())
+        );
+        rabbitMQMessageProducer.publish(
+                notificationRequest,
+                "internal.exchange",
+                "internalNotificationRoutingKey"
         );
     }
 }
